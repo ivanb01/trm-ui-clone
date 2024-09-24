@@ -1,0 +1,65 @@
+variables:
+  CONTAINER_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+  TEST_IMAGE: trm-ui-tests:$CI_COMMIT_SHORT_SHA
+  SERVER_IP: "192.168.2.57"
+  BUILD_TEST_ENV: "http://192.168.2.57:8081"
+  DOCKER_COMPOSE_FILE_PATH: "/home/nites/compose-ui/docker-compose.yaml"
+  DOCKER_COMPOSE_ENV_FILE_PATH: "/home/nites/compose-ui/.env"
+
+stages:
+  - build
+  - test
+  - deployment
+
+build_job:
+  stage: build
+  tags:
+    - shell
+  script:
+    - "sed -i \"s|baseUrl: '.*'|baseUrl: '$BUILD_TEST_ENV'|\" cypress.config.ts"
+    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
+    - docker build --target server -t $CONTAINER_IMAGE .
+    - docker push $CONTAINER_IMAGE
+    - docker build --target tests -t $TEST_IMAGE .
+  after_script:
+    - docker rmi $CONTAINER_IMAGE -f
+  when: manual
+
+test_deploy:
+  stage: test
+  tags:
+    - shell
+  timeout: 10m
+  needs: [ "build_job" ]
+  before_script:
+    - mkdir -p ~/.ssh
+    - ssh-keyscan "$SERVER_IP" >> ~/.ssh/known_hosts
+  script:
+    - ssh nites@"$SERVER_IP" "sed -i 's|^BUILD_TEST_IMAGE=.*|BUILD_TEST_IMAGE=${CONTAINER_IMAGE}|' ${DOCKER_COMPOSE_ENV_FILE_PATH}"
+    - ssh nites@"$SERVER_IP" "sudo docker-compose -f $DOCKER_COMPOSE_FILE_PATH --compatibility up -d"
+
+test_execution:
+  stage: test
+  tags:
+    - shell
+  timeout: 10m
+  needs: [ "build_job", "test_deploy" ]
+  script:
+    - docker run --network host $TEST_IMAGE /bin/bash -c "npx cypress run --config baseUrl=$BUILD_TEST_ENV --headless"
+  after_script:
+    - docker rmi $TEST_IMAGE -f
+
+dev_deploy:
+  stage: deployment
+  tags:
+    - shell
+  needs: [ "test_execution" ]
+  before_script:
+    - mkdir -p ~/.ssh
+    - ssh-keyscan "$SERVER_IP" >> ~/.ssh/known_hosts
+  script:
+    - ssh nites@"$SERVER_IP" "sed -i 's|^DEV_IMAGE=.*|DEV_IMAGE=${CONTAINER_IMAGE}|' ${DOCKER_COMPOSE_ENV_FILE_PATH}"
+    - ssh nites@"$SERVER_IP" "sudo docker-compose -f $DOCKER_COMPOSE_FILE_PATH --compatibility up -d"
+  when: manual
+  environment:
+    name: develop

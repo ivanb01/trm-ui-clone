@@ -1,0 +1,28 @@
+.ant-slider-handle {
+  &.ant-slider-handle-2, &.ant-slider-handle-1 {
+    width: 1px;
+    height: 36px;
+    background: dimgray;
+
+    &:after {
+      width: 1px!important;
+      height: 36px !important;
+      border-radius: 8px;
+    }
+
+    &:before {
+      width: 1px!important;
+      height: 36px !important;
+    }
+    &:hover {
+      width: 1px!important;
+      height: 36px !important;
+      border-radius: 8px;
+    }
+
+    &:focus {
+      width: 1px!important;
+      height: 36px !important;
+    }
+  }
+}

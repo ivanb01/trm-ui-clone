@@ -1,0 +1,8 @@
+{
+  "extends": ["stylelint-config-standard", "stylelint-config-tailwindcss"],
+  "rules": {
+    "color-named": "never",
+    "font-weight-notation": "numeric"
+  },
+  "ignoreFiles": ["src/pages/dashboard/Dashboard.tsx"]
+}
