@@ -1,0 +1,3 @@
+[submodule "packages/nites-fe-platform-app"]
+	path = packages/nites-fe-platform-app
+	url = https://github.com/ivanb01/nites-fe-platform-app.git
