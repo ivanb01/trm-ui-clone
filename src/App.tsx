@@ -8,7 +8,7 @@ import { RouterProvider } from 'react-router-dom';
 
 import { router } from './router/router.tsx';
 import { themeAtom } from './state/atoms/themeAtom.ts';
-
+import Index from "../packages/nites-fe-platform-app/app/routes/_index.tsx"
 const queryClient = new QueryClient();
 
 function App() {
@@ -29,6 +29,7 @@ function App() {
         prefixCls="ant"
       >
         <RouterProvider router={router} />
+        <Index />
       </ConfigProvider>
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>

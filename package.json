@@ -13,7 +13,8 @@
     "preview": "vite preview",
     "test": "jest",
     "cypress:run": "cypress run",
-    "cypress:open": "cypress open"
+    "cypress:open": "cypress open",
+    "postinstall": "cd ./packages/nites-fe-platform-app/ && yarn install"
   },
   "lint-staged": {
     "**/*": "prettier --write --ignore-unknown"
